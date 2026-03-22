@@ -2,6 +2,14 @@ use euvd_rs::{EuvdClient, SearchParams};
 use mockito::{Matcher, Server};
 
 #[tokio::test]
+async fn test_rate_limit_zero_does_not_panic() {
+    // BUG-1 regression: rate_limit(0) previously panicked via NonZeroU32::new(0).unwrap()
+    let client = EuvdClient::builder().rate_limit(0).build();
+    // Should not panic — just verify we got a valid client
+    let _ = format!("{:?}", client);
+}
+
+#[tokio::test]
 async fn test_client_builder_default() {
     let client = EuvdClient::builder().build();
     assert_eq!(
