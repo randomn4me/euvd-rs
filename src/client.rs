@@ -68,14 +68,34 @@ impl EuvdClient {
     /// let client = EuvdClient::new();
     /// let params = SearchParams {
     ///     text: Some("Microsoft".to_string()),
-    ///     from_score: Some(7),
-    ///     to_score: Some(10),
+    ///     from_score: Some(7.0),
+    ///     to_score: Some(10.0),
     /// };
     /// let results = client.search(&params).await?;
     /// # Ok(())
     /// # }
     /// ```
     pub async fn search(&self, params: &SearchParams) -> Result<SearchResponse> {
+        if let Some(from) = params.from_score {
+            if !(0.0..=10.0).contains(&from) {
+                return Err(EuvdError::Parse(
+                    "from_score must be between 0.0 and 10.0".into(),
+                ));
+            }
+        }
+        if let Some(to) = params.to_score {
+            if !(0.0..=10.0).contains(&to) {
+                return Err(EuvdError::Parse(
+                    "to_score must be between 0.0 and 10.0".into(),
+                ));
+            }
+        }
+        if let (Some(from), Some(to)) = (params.from_score, params.to_score) {
+            if from > to {
+                return Err(EuvdError::Parse("from_score must be <= to_score".into()));
+            }
+        }
+
         let mut url = format!("{}/search", self.base_url);
         let mut query_parts = Vec::new();
 
@@ -316,18 +336,18 @@ pub(crate) fn parse_csv_mapping(body: &str) -> Vec<CveEuvdMapping> {
 /// // Search by score range
 /// let params = SearchParams {
 ///     text: None,
-///     from_score: Some(9),
-///     to_score: Some(10),
+///     from_score: Some(7.5),
+///     to_score: Some(10.0),
 /// };
 /// ```
 #[derive(Clone, Debug, Default)]
 pub struct SearchParams {
     /// Text search query
     pub text: Option<String>,
-    /// Minimum CVSS score (0-10)
-    pub from_score: Option<u32>,
-    /// Maximum CVSS score (0-10)
-    pub to_score: Option<u32>,
+    /// Minimum CVSS score (0.0-10.0)
+    pub from_score: Option<f32>,
+    /// Maximum CVSS score (0.0-10.0)
+    pub to_score: Option<f32>,
 }
 
 #[cfg(test)]
@@ -390,5 +410,41 @@ mod tests {
         let result = parse_csv_mapping(csv);
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].cve_id, "CVE-2024-1,extra");
+    }
+
+    #[tokio::test]
+    async fn search_params_score_above_10() {
+        let client = crate::EuvdClient::new();
+        let params = SearchParams {
+            text: None,
+            from_score: Some(11.0),
+            to_score: None,
+        };
+        let result = client.search(&params).await;
+        assert!(matches!(result, Err(crate::EuvdError::Parse(_))));
+    }
+
+    #[tokio::test]
+    async fn search_params_inverted_range() {
+        let client = crate::EuvdClient::new();
+        let params = SearchParams {
+            text: None,
+            from_score: Some(9.0),
+            to_score: Some(5.0),
+        };
+        let result = client.search(&params).await;
+        assert!(matches!(result, Err(crate::EuvdError::Parse(_))));
+    }
+
+    #[tokio::test]
+    async fn search_params_negative_score() {
+        let client = crate::EuvdClient::new();
+        let params = SearchParams {
+            text: None,
+            from_score: Some(-1.0),
+            to_score: None,
+        };
+        let result = client.search(&params).await;
+        assert!(matches!(result, Err(crate::EuvdError::Parse(_))));
     }
 }
