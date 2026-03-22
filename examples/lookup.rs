@@ -86,6 +86,19 @@ async fn main() -> euvd_rs::Result<()> {
                 println!("  Aliases:     {}", aliases.trim().replace('\n', ", "));
             }
             println!("  Description: {}", v.description);
+            if !v.enisa_id_advisory.is_empty() {
+                println!("\n  Advisories ({}):", v.enisa_id_advisory.len());
+                for rel in &v.enisa_id_advisory {
+                    let a = &rel.advisory;
+                    let source = a
+                        .source
+                        .as_ref()
+                        .map(|s| s.name.as_str())
+                        .unwrap_or("unknown");
+                    println!("    {} [{}]", a.id, source);
+                    println!("      {}", truncate(&a.description, 70));
+                }
+            }
         }
         _ => {
             eprintln!("Usage: lookup <command> [args]");
