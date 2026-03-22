@@ -253,8 +253,7 @@ async fn test_search_with_text() {
 
     let params = SearchParams {
         text: Some("linux".to_string()),
-        from_score: None,
-        to_score: None,
+        ..Default::default()
     };
 
     let result = client.search(&params).await.unwrap();
@@ -284,9 +283,9 @@ async fn test_search_with_score_range() {
     let client = EuvdClient::builder().base_url(server.url()).build();
 
     let params = SearchParams {
-        text: None,
         from_score: Some(9.0),
         to_score: Some(10.0),
+        ..Default::default()
     };
 
     let result = client.search(&params).await.unwrap();

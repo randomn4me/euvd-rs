@@ -53,8 +53,7 @@ async fn main() -> euvd_rs::Result<()> {
             let query = args.get(2).expect("Usage: lookup search <query>");
             let params = SearchParams {
                 text: Some(query.clone()),
-                from_score: None,
-                to_score: None,
+                ..Default::default()
             };
             let result = client.search(&params).await?;
             println!(

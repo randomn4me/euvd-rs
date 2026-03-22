@@ -70,6 +70,7 @@ impl EuvdClient {
     ///     text: Some("Microsoft".to_string()),
     ///     from_score: Some(7.0),
     ///     to_score: Some(10.0),
+    ///     ..Default::default()
     /// };
     /// let results = client.search(&params).await?;
     /// # Ok(())
@@ -107,6 +108,48 @@ impl EuvdClient {
         }
         if let Some(to_score) = params.to_score {
             query_parts.push(format!("toScore={}", to_score));
+        }
+        if let Some(from_epss) = params.from_epss {
+            query_parts.push(format!("fromEpss={}", from_epss));
+        }
+        if let Some(to_epss) = params.to_epss {
+            query_parts.push(format!("toEpss={}", to_epss));
+        }
+        if let Some(from_date) = &params.from_date {
+            query_parts.push(format!("fromDate={}", urlencoding::encode(from_date)));
+        }
+        if let Some(to_date) = &params.to_date {
+            query_parts.push(format!("toDate={}", urlencoding::encode(to_date)));
+        }
+        if let Some(from_updated_date) = &params.from_updated_date {
+            query_parts.push(format!(
+                "fromUpdatedDate={}",
+                urlencoding::encode(from_updated_date)
+            ));
+        }
+        if let Some(to_updated_date) = &params.to_updated_date {
+            query_parts.push(format!(
+                "toUpdatedDate={}",
+                urlencoding::encode(to_updated_date)
+            ));
+        }
+        if let Some(product) = &params.product {
+            query_parts.push(format!("product={}", urlencoding::encode(product)));
+        }
+        if let Some(vendor) = &params.vendor {
+            query_parts.push(format!("vendor={}", urlencoding::encode(vendor)));
+        }
+        if let Some(assigner) = &params.assigner {
+            query_parts.push(format!("assigner={}", urlencoding::encode(assigner)));
+        }
+        if let Some(exploited) = params.exploited {
+            query_parts.push(format!("exploited={}", exploited));
+        }
+        if let Some(page) = params.page {
+            query_parts.push(format!("page={}", page));
+        }
+        if let Some(size) = params.size {
+            query_parts.push(format!("size={}", size));
         }
 
         if !query_parts.is_empty() {
@@ -350,18 +393,19 @@ pub(crate) fn parse_csv_mapping(body: &str) -> Vec<CveEuvdMapping> {
 /// ```
 /// use euvd_rs::SearchParams;
 ///
-/// // Search by text
+/// // Search by text with pagination
 /// let params = SearchParams {
 ///     text: Some("Microsoft".to_string()),
-///     from_score: None,
-///     to_score: None,
+///     page: Some(0),
+///     size: Some(20),
+///     ..Default::default()
 /// };
 ///
 /// // Search by score range
 /// let params = SearchParams {
-///     text: None,
 ///     from_score: Some(7.5),
 ///     to_score: Some(10.0),
+///     ..Default::default()
 /// };
 /// ```
 #[derive(Clone, Debug, Default)]
@@ -372,6 +416,30 @@ pub struct SearchParams {
     pub from_score: Option<f32>,
     /// Maximum CVSS score (0.0-10.0)
     pub to_score: Option<f32>,
+    /// Minimum EPSS score (0-100)
+    pub from_epss: Option<u32>,
+    /// Maximum EPSS score (0-100)
+    pub to_epss: Option<u32>,
+    /// Filter by published date (start, YYYY-MM-DD)
+    pub from_date: Option<String>,
+    /// Filter by published date (end, YYYY-MM-DD)
+    pub to_date: Option<String>,
+    /// Filter by last updated date (start, YYYY-MM-DD)
+    pub from_updated_date: Option<String>,
+    /// Filter by last updated date (end, YYYY-MM-DD)
+    pub to_updated_date: Option<String>,
+    /// Filter by product name
+    pub product: Option<String>,
+    /// Filter by vendor name
+    pub vendor: Option<String>,
+    /// Filter by assigner
+    pub assigner: Option<String>,
+    /// Filter to exploited vulnerabilities only
+    pub exploited: Option<bool>,
+    /// Page number (0-based)
+    pub page: Option<u32>,
+    /// Results per page (default 10, max 100)
+    pub size: Option<u32>,
 }
 
 #[cfg(test)]
@@ -440,9 +508,8 @@ mod tests {
     async fn search_params_score_above_10() {
         let client = crate::EuvdClient::new();
         let params = SearchParams {
-            text: None,
             from_score: Some(11.0),
-            to_score: None,
+            ..Default::default()
         };
         let result = client.search(&params).await;
         assert!(matches!(result, Err(crate::EuvdError::Parse(_))));
@@ -452,9 +519,9 @@ mod tests {
     async fn search_params_inverted_range() {
         let client = crate::EuvdClient::new();
         let params = SearchParams {
-            text: None,
             from_score: Some(9.0),
             to_score: Some(5.0),
+            ..Default::default()
         };
         let result = client.search(&params).await;
         assert!(matches!(result, Err(crate::EuvdError::Parse(_))));
@@ -464,9 +531,8 @@ mod tests {
     async fn search_params_negative_score() {
         let client = crate::EuvdClient::new();
         let params = SearchParams {
-            text: None,
             from_score: Some(-1.0),
-            to_score: None,
+            ..Default::default()
         };
         let result = client.search(&params).await;
         assert!(matches!(result, Err(crate::EuvdError::Parse(_))));
