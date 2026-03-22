@@ -26,11 +26,8 @@ const DEFAULT_BASE_URL: &str = "https://euvdservices.enisa.europa.eu/api";
 /// ```
 #[derive(Debug)]
 pub struct EuvdClient {
-    #[allow(dead_code)]
     client: Client,
-    #[allow(dead_code)]
     base_url: String,
-    #[allow(dead_code)]
     rate_limiter: RateLimiter,
 }
 

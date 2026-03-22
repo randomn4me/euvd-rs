@@ -6,7 +6,6 @@ use governor::{
 use std::num::NonZeroU32;
 
 pub struct RateLimiter {
-    #[allow(dead_code)]
     limiter: GovernorRateLimiter<NotKeyed, InMemoryState, DefaultClock>,
 }
 
