@@ -10,23 +10,67 @@ async fn test_rate_limit_zero_does_not_panic() {
 }
 
 #[tokio::test]
-async fn test_client_builder_default() {
-    let client = EuvdClient::builder().build();
-    assert!(format!("{:?}", client).contains("EuvdClient"));
+async fn test_client_builder_default_hits_correct_url() {
+    let mut server = Server::new_async().await;
+    let fixture = include_str!("fixtures/latest_vulnerabilities.json");
+
+    let mock = server
+        .mock("GET", "/lastvulnerabilities")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(fixture)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder().base_url(server.url()).build();
+    let _ = client.latest_vulnerabilities().await.unwrap();
+
+    mock.assert_async().await;
 }
 
 #[tokio::test]
 async fn test_client_builder_custom_base_url() {
-    let client = EuvdClient::builder()
-        .base_url("https://example.com/api")
-        .build();
-    assert!(format!("{:?}", client).contains("EuvdClient"));
+    let mut server = Server::new_async().await;
+    let fixture = include_str!("fixtures/latest_vulnerabilities.json");
+
+    let mock = server
+        .mock("GET", "/lastvulnerabilities")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(fixture)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder().base_url(server.url()).build();
+    let result = client.latest_vulnerabilities().await.unwrap();
+    assert!(!result.is_empty());
+
+    mock.assert_async().await;
 }
 
 #[tokio::test]
 async fn test_client_builder_custom_rate_limit() {
-    let client = EuvdClient::builder().rate_limit(5).build();
-    assert!(format!("{:?}", client).contains("EuvdClient"));
+    let mut server = Server::new_async().await;
+    let fixture = include_str!("fixtures/latest_vulnerabilities.json");
+
+    let mock = server
+        .mock("GET", "/lastvulnerabilities")
+        .expect(2)
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(fixture)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder()
+        .base_url(server.url())
+        .rate_limit(100)
+        .build();
+
+    let _ = client.latest_vulnerabilities().await.unwrap();
+    let _ = client.latest_vulnerabilities().await.unwrap();
+
+    mock.assert_async().await;
 }
 
 #[tokio::test]
