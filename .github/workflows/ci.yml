@@ -36,3 +36,37 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --check
+
+  pr-hygiene:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require issue reference
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if ! echo "$PR_BODY" | grep -qPi '(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#\d+'; then
+            echo "::error::PR body must reference an issue (e.g. 'Closes #42')"
+            exit 1
+          fi
+
+      - name: Require rebase on main (no merge commits)
+        run: |
+          MERGE_COMMITS=$(git log --merges origin/main..HEAD --oneline)
+          if [ -n "$MERGE_COMMITS" ]; then
+            echo "::error::PR contains merge commits. Please rebase on main and squash your history."
+            echo "$MERGE_COMMITS"
+            exit 1
+          fi
+
+      - name: Require squashed history (single commit)
+        run: |
+          COMMIT_COUNT=$(git rev-list --count origin/main..HEAD)
+          if [ "$COMMIT_COUNT" -gt 1 ]; then
+            echo "::error::PR has $COMMIT_COUNT commits. Please squash into a single commit."
+            exit 1
+          fi

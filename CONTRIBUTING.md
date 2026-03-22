@@ -32,11 +32,27 @@ For features like pagination, retry logic, or new builder options:
 1. Open an issue explaining the use case.
 2. Keep the scope small — one feature per PR.
 
+## PR Requirements
+
+PRs are checked automatically by CI. Your PR will be rejected if:
+
+- **No issue reference** — the PR body must contain `Closes #<number>` (or `Fixes`, `Resolves`).
+- **Not rebased on main** — merge commits are not allowed. Rebase your branch on `main`.
+- **Not squashed** — squash your commits into a single commit before submitting.
+
+```bash
+# Rebase and squash onto main
+git fetch origin
+git rebase -i origin/main
+# Mark all commits except the first as "squash", then force-push your branch
+git push --force-with-lease
+```
+
 ## Code Guidelines
 
 - Run `cargo fmt`, `cargo clippy -- -D warnings`, and `cargo test` before submitting.
 - Follow existing code conventions and patterns.
-- One logical change per commit, using [conventional commit](https://www.conventionalcommits.org/) style.
+- Use [conventional commit](https://www.conventionalcommits.org/) style for your commit message.
 - Keep dependencies minimal.
 
 ## License
