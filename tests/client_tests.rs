@@ -552,3 +552,55 @@ async fn test_cve_euvd_mapping_server_error() {
 
     mock.assert_async().await;
 }
+
+#[tokio::test]
+async fn test_get_advisory() {
+    let mut server = Server::new_async().await;
+    let fixture = include_str!("fixtures/advisory_by_id.json");
+
+    let mock = server
+        .mock("GET", "/advisory")
+        .match_query(Matcher::UrlEncoded(
+            "id".into(),
+            "cisco-sa-ata19x-multi-RDTEqRsy".into(),
+        ))
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(fixture)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder().base_url(server.url()).build();
+
+    let result = client
+        .get_advisory("cisco-sa-ata19x-multi-RDTEqRsy")
+        .await
+        .unwrap();
+    assert_eq!(result.id, "cisco-sa-ata19x-multi-RDTEqRsy");
+    assert!(!result.enisa_id_advisories.is_empty());
+    assert!(!result.vulnerability_advisory.is_empty());
+
+    mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn test_get_advisory_not_found() {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/advisory")
+        .match_query(Matcher::UrlEncoded("id".into(), "nonexistent".into()))
+        .with_status(404)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder().base_url(server.url()).build();
+
+    let result = client.get_advisory("nonexistent").await;
+    assert!(matches!(
+        result.unwrap_err(),
+        euvd_rs::EuvdError::NotFound(_)
+    ));
+
+    mock.assert_async().await;
+}

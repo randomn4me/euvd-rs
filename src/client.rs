@@ -1,6 +1,6 @@
 use crate::{
     error::{EuvdError, Result},
-    models::{CveEuvdMapping, SearchResponse, Vulnerability, VulnerabilityList},
+    models::{AdvisoryDetail, CveEuvdMapping, SearchResponse, Vulnerability, VulnerabilityList},
     rate_limiter::RateLimiter,
 };
 use reqwest::Client;
@@ -164,6 +164,30 @@ impl EuvdClient {
     /// ```
     pub async fn get_by_cve(&self, cve_id: &str) -> Result<Vulnerability> {
         self.get_by_id(cve_id).await
+    }
+
+    /// Look up a security advisory by its ID
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use euvd_rs::EuvdClient;
+    ///
+    /// # async fn example() -> euvd_rs::Result<()> {
+    /// let client = EuvdClient::new();
+    /// let advisory = client.get_advisory("cisco-sa-ata19x-multi-RDTEqRsy").await?;
+    /// println!("{}: {}", advisory.id, advisory.description);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_advisory(&self, id: &str) -> Result<AdvisoryDetail> {
+        let url = format!("{}/advisory?id={}", self.base_url, urlencoding::encode(id));
+
+        self.rate_limiter.wait().await;
+        debug!("GET {}", url);
+
+        let response = self.client.get(&url).send().await?;
+        self.handle_response(response).await
     }
 
     /// Download the full CVE-to-EUVD ID mapping (CSV dump)

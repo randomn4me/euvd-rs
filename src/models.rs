@@ -83,8 +83,10 @@ pub struct Vulnerability {
     #[serde(default, deserialize_with = "deserialize_optional_euvd_date")]
     pub exploited_since: Option<NaiveDateTime>,
     /// Affected products
+    #[serde(default)]
     pub enisa_id_product: Vec<ProductRelation>,
     /// Related vendors
+    #[serde(default)]
     pub enisa_id_vendor: Vec<VendorRelation>,
     /// Related vulnerability details
     #[serde(default)]
@@ -182,8 +184,10 @@ pub struct VulnerabilityDetail {
     #[serde(deserialize_with = "deserialize_euvd_date")]
     pub data_processed: NaiveDateTime,
     /// Related products
+    #[serde(default)]
     pub vulnerability_product: Vec<ProductRelation>,
     /// Related vendors
+    #[serde(default)]
     pub vulnerability_vendor: Vec<VendorRelation>,
 }
 
@@ -238,6 +242,56 @@ pub struct AdvisorySource {
     pub id: u64,
     /// Source name (e.g., "csaf_certbund")
     pub name: String,
+}
+
+/// Full advisory detail from the `/advisory` endpoint
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct AdvisoryDetail {
+    /// Advisory identifier (e.g., "cisco-sa-ata19x-multi-RDTEqRsy")
+    pub id: String,
+    /// Advisory title/description
+    pub description: String,
+    /// Detailed summary
+    #[serde(default)]
+    pub summary: Option<String>,
+    /// Publication date
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub date_published: NaiveDateTime,
+    /// Last update date
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub date_updated: NaiveDateTime,
+    /// CVSS base score
+    #[serde(default)]
+    pub base_score: f64,
+    /// Reference URLs
+    #[serde(default, deserialize_with = "deserialize_newline_list")]
+    pub references: Vec<String>,
+    /// Related CVE aliases
+    #[serde(default, deserialize_with = "deserialize_newline_list")]
+    pub aliases: Vec<String>,
+    /// Advisory source
+    #[serde(default)]
+    pub source: Option<AdvisorySource>,
+    /// Affected products
+    #[serde(default)]
+    pub advisory_product: Vec<ProductRelation>,
+    /// Linked EUVD vulnerability entries
+    #[serde(default)]
+    pub enisa_id_advisories: Vec<EnisaIdAdvisoryRelation>,
+    /// Linked CVE/vulnerability details
+    #[serde(default)]
+    pub vulnerability_advisory: Vec<VulnerabilityRelation>,
+}
+
+/// Relationship linking an advisory to an EUVD vulnerability entry
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct EnisaIdAdvisoryRelation {
+    /// Relation identifier
+    pub id: String,
+    /// The linked EUVD vulnerability
+    pub enisa_id: Vulnerability,
 }
 
 /// List of vulnerabilities
