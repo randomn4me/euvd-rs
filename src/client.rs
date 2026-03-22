@@ -279,7 +279,7 @@ impl EuvdClientBuilder {
     /// Build the client with the configured settings
     pub fn build(self) -> EuvdClient {
         EuvdClient {
-            client: self.client.unwrap_or_else(|| Client::new()),
+            client: self.client.unwrap_or_default(),
             base_url: self.base_url,
             rate_limiter: RateLimiter::new(self.rate_limit),
         }
