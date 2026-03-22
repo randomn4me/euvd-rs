@@ -18,7 +18,9 @@ impl std::fmt::Debug for RateLimiter {
 
 impl RateLimiter {
     pub fn new(requests_per_second: u32) -> Self {
-        let quota = Quota::per_second(NonZeroU32::new(requests_per_second).unwrap());
+        let rps = NonZeroU32::new(requests_per_second)
+            .unwrap_or_else(|| NonZeroU32::new(1).unwrap());
+        let quota = Quota::per_second(rps);
         Self {
             limiter: GovernorRateLimiter::direct(quota),
         }
