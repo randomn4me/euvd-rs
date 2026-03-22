@@ -241,8 +241,8 @@ async fn test_search_with_score_range() {
 
     let params = SearchParams {
         text: None,
-        from_score: Some(9),
-        to_score: Some(10),
+        from_score: Some(9.0),
+        to_score: Some(10.0),
     };
 
     let result = client.search(&params).await.unwrap();
