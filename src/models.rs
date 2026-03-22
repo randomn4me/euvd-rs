@@ -138,3 +138,12 @@ pub struct AdvisoryRelation {
 
 /// List of vulnerabilities
 pub type VulnerabilityList = Vec<Vulnerability>;
+
+/// A mapping between a CVE ID and an EUVD ID from the bulk dump endpoint
+#[derive(Clone, Debug, PartialEq)]
+pub struct CveEuvdMapping {
+    /// EUVD identifier (e.g., "EUVD-2024-45012")
+    pub euvd_id: String,
+    /// CVE identifier (e.g., "CVE-2024-50831")
+    pub cve_id: String,
+}

@@ -357,3 +357,128 @@ async fn test_malformed_json_error() {
 
     mock.assert_async().await;
 }
+
+#[tokio::test]
+async fn test_cve_euvd_mapping() {
+    let mut server = Server::new_async().await;
+    let fixture = include_str!("fixtures/cve_euvd_mapping.csv");
+
+    let mock = server
+        .mock("GET", "/dump/cve-euvd-mapping")
+        .with_status(200)
+        .with_header("content-type", "text/csv")
+        .with_body(fixture)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder()
+        .base_url(server.url())
+        .build();
+
+    let mappings = client.cve_euvd_mapping().await.unwrap();
+
+    assert_eq!(mappings.len(), 3);
+    assert_eq!(mappings[0].euvd_id, "EUVD-2024-45012");
+    assert_eq!(mappings[0].cve_id, "CVE-2024-50831");
+    assert_eq!(mappings[2].euvd_id, "EUVD-2024-45014");
+    assert_eq!(mappings[2].cve_id, "CVE-2024-50833");
+
+    mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn test_cve_euvd_mapping_empty() {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/dump/cve-euvd-mapping")
+        .with_status(200)
+        .with_header("content-type", "text/csv")
+        .with_body("euvd_id,cve_id\n")
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder()
+        .base_url(server.url())
+        .build();
+
+    let mappings = client.cve_euvd_mapping().await.unwrap();
+    assert!(mappings.is_empty());
+
+    mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn test_cve_euvd_mapping_malformed_row() {
+    let mut server = Server::new_async().await;
+
+    let body = "euvd_id,cve_id\nEUVD-2024-45012,CVE-2024-50831\nbadrow\n,\nEUVD-2024-45014,CVE-2024-50833\n";
+
+    let mock = server
+        .mock("GET", "/dump/cve-euvd-mapping")
+        .with_status(200)
+        .with_header("content-type", "text/csv")
+        .with_body(body)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder()
+        .base_url(server.url())
+        .build();
+
+    let mappings = client.cve_euvd_mapping().await.unwrap();
+    assert_eq!(mappings.len(), 2);
+    assert_eq!(mappings[0].euvd_id, "EUVD-2024-45012");
+    assert_eq!(mappings[1].euvd_id, "EUVD-2024-45014");
+
+    mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn test_cve_euvd_mapping_rate_limited() {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/dump/cve-euvd-mapping")
+        .with_status(429)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder()
+        .base_url(server.url())
+        .build();
+
+    let result = client.cve_euvd_mapping().await;
+    assert!(result.is_err());
+    assert!(matches!(result.unwrap_err(), euvd_rs::EuvdError::RateLimited));
+
+    mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn test_cve_euvd_mapping_server_error() {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/dump/cve-euvd-mapping")
+        .with_status(500)
+        .with_body("Internal Server Error")
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder()
+        .base_url(server.url())
+        .build();
+
+    let result = client.cve_euvd_mapping().await;
+    assert!(result.is_err());
+    match result.unwrap_err() {
+        euvd_rs::EuvdError::Api { status, body } => {
+            assert_eq!(status, 500);
+            assert_eq!(body, "Internal Server Error");
+        }
+        other => panic!("Expected Api error, got: {:?}", other),
+    }
+
+    mock.assert_async().await;
+}
