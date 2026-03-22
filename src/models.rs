@@ -58,8 +58,9 @@ pub struct ProductRelation {
     pub id: String,
     /// Product information
     pub product: Product,
-    /// Affected version(s)
-    pub product_version: String,
+    /// Affected version(s) (not present in advisory product relations)
+    #[serde(default)]
+    pub product_version: Option<String>,
 }
 
 /// Product information
@@ -107,18 +108,29 @@ pub struct VulnerabilityDetail {
     pub date_published: String,
     /// Last update date
     pub date_updated: String,
-    /// Publication status
-    pub status: String,
+    /// Publication status (not present on all vulnerability types, e.g. GHSA)
+    #[serde(default)]
+    pub status: Option<String>,
     /// CVSS base score
     pub base_score: f64,
+    /// CVSS version (e.g., "3.1", "4.0")
+    #[serde(default)]
+    pub base_score_version: Option<String>,
+    /// CVSS vector string
+    #[serde(default)]
+    pub base_score_vector: Option<String>,
     /// Reference URLs
     #[serde(default)]
     pub references: Option<String>,
+    /// CVE IDs and other aliases
+    #[serde(default)]
+    pub aliases: Option<String>,
     /// EUVD identifier
     #[serde(rename = "enisa_id")]
     pub enisa_id: String,
-    /// Assigning organization
-    pub assigner: String,
+    /// Assigning organization (not present on all vulnerability types, e.g. GHSA)
+    #[serde(default)]
+    pub assigner: Option<String>,
     /// EPSS score
     pub epss: f64,
     /// Data processing timestamp
@@ -131,9 +143,53 @@ pub struct VulnerabilityDetail {
 
 /// Relationship to a security advisory
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct AdvisoryRelation {
-    /// Advisory identifier
+    /// Relation identifier
     pub id: String,
+    /// Advisory details
+    pub advisory: Advisory,
+}
+
+/// Security advisory information
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Advisory {
+    /// Advisory identifier (e.g., "WID-SEC-W-2025-0723")
+    pub id: String,
+    /// Advisory title/description
+    pub description: String,
+    /// Detailed summary
+    #[serde(default)]
+    pub summary: Option<String>,
+    /// Publication date
+    pub date_published: String,
+    /// Last update date
+    pub date_updated: String,
+    /// CVSS base score
+    #[serde(default)]
+    pub base_score: f64,
+    /// Reference URLs (newline-delimited)
+    #[serde(default)]
+    pub references: Option<String>,
+    /// Related CVE aliases (newline-delimited)
+    #[serde(default)]
+    pub aliases: Option<String>,
+    /// Advisory source
+    #[serde(default)]
+    pub source: Option<AdvisorySource>,
+    /// Affected products
+    #[serde(default)]
+    pub advisory_product: Vec<ProductRelation>,
+}
+
+/// Source of a security advisory
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct AdvisorySource {
+    /// Source identifier
+    pub id: u64,
+    /// Source name (e.g., "csaf_certbund")
+    pub name: String,
 }
 
 /// List of vulnerabilities

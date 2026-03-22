@@ -139,3 +139,37 @@ fn test_vulnerability_base_score() {
     let vulns: VulnerabilityList = serde_json::from_str(json).unwrap();
     assert_eq!(vulns[0].base_score, 6.3);
 }
+
+#[test]
+fn test_deserialize_vulnerability_with_ghsa_nested() {
+    let json = include_str!("fixtures/vulnerability_by_id.json");
+    let vuln: Vulnerability = serde_json::from_str(json).unwrap();
+    assert_eq!(vuln.enisa_id_vulnerability.len(), 2);
+    let ghsa = &vuln.enisa_id_vulnerability[0].vulnerability;
+    assert!(ghsa.id.starts_with("GHSA-"));
+    assert!(ghsa.status.is_none());
+    assert!(ghsa.assigner.is_none());
+}
+
+#[test]
+fn test_deserialize_vulnerability_with_cve_nested() {
+    let json = include_str!("fixtures/vulnerability_by_id.json");
+    let vuln: Vulnerability = serde_json::from_str(json).unwrap();
+    let cve = &vuln.enisa_id_vulnerability[1].vulnerability;
+    assert!(cve.id.starts_with("CVE-"));
+    assert!(cve.status.is_some());
+    assert!(cve.assigner.is_some());
+    assert!(cve.base_score_version.is_some());
+}
+
+#[test]
+fn test_deserialize_vulnerability_with_advisory() {
+    let json = include_str!("fixtures/vulnerability_with_advisory.json");
+    let vuln: Vulnerability = serde_json::from_str(json).unwrap();
+    assert!(!vuln.enisa_id_advisory.is_empty());
+    let advisory = &vuln.enisa_id_advisory[0].advisory;
+    assert!(!advisory.id.is_empty());
+    assert!(!advisory.description.is_empty());
+    assert!(advisory.source.is_some());
+    assert!(!advisory.advisory_product.is_empty());
+}

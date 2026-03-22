@@ -36,4 +36,7 @@ mod rate_limiter;
 
 pub use client::{EuvdClient, EuvdClientBuilder, SearchParams};
 pub use error::{EuvdError, Result};
-pub use models::{CveEuvdMapping, SearchResponse, Vulnerability, VulnerabilityList};
+pub use models::{
+    Advisory, AdvisoryRelation, AdvisorySource, CveEuvdMapping, SearchResponse, Vulnerability,
+    VulnerabilityList,
+};
