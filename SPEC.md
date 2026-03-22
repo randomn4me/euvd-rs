@@ -1,7 +1,9 @@
-# euvd-rs — ENISA EU Vulnerability Database Client for Rust
+# euvd-rs — Design Document (Historical)
+
+> **Note:** This is the original design document used during initial development. The implementation diverged after exploring the live API. See the README and source code for the actual API surface.
 
 ## Purpose
-Rust client for ENISA's European Union Vulnerability Database (EUVD). REST API, no authentication required. Designed for the cybersec-knowledge-graph but publishable standalone.
+Rust client for ENISA's European Union Vulnerability Database (EUVD). REST API, no authentication required.
 
 ## EUVD API
 
@@ -96,5 +98,5 @@ Before writing the implementation, the coding agent should:
 
 ## Crate Metadata
 - Name: `euvd-rs`
-- License: MIT OR Apache-2.0
+- License: MIT
 - Edition: 2021
