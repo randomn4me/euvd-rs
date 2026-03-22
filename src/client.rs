@@ -122,25 +122,7 @@ impl EuvdClient {
         debug!("GET {}", url);
 
         let response = self.client.get(&url).send().await?;
-
-        if response.status() == 404 {
-            return Err(EuvdError::NotFound(id.to_string()));
-        }
-
-        if response.status() == 429 {
-            return Err(EuvdError::RateLimited);
-        }
-
-        if !response.status().is_success() {
-            let status = response.status().as_u16();
-            let body = response.text().await.unwrap_or_default();
-            return Err(EuvdError::Api { status, body });
-        }
-
-        response
-            .json()
-            .await
-            .map_err(|e| EuvdError::Parse(format!("Failed to parse vulnerability: {}", e)))
+        self.handle_response(response).await
     }
 
     /// Search for vulnerabilities by CVE ID
@@ -177,17 +159,7 @@ impl EuvdClient {
         debug!("GET {}", url);
 
         let response = self.client.get(&url).send().await?;
-
-        if response.status() == 429 {
-            warn!("Rate limited by server");
-            return Err(EuvdError::RateLimited);
-        }
-
-        if !response.status().is_success() {
-            let status = response.status().as_u16();
-            let body = response.text().await.unwrap_or_default();
-            return Err(EuvdError::Api { status, body });
-        }
+        let response = Self::check_status(response).await?;
 
         let body = response
             .text()
@@ -211,6 +183,19 @@ impl EuvdClient {
         &self,
         response: reqwest::Response,
     ) -> Result<T> {
+        let response = Self::check_status(response).await?;
+
+        response
+            .json()
+            .await
+            .map_err(|e| EuvdError::Parse(format!("Failed to parse response: {}", e)))
+    }
+
+    async fn check_status(response: reqwest::Response) -> Result<reqwest::Response> {
+        if response.status() == 404 {
+            return Err(EuvdError::NotFound(response.url().to_string()));
+        }
+
         if response.status() == 429 {
             warn!("Rate limited by server");
             return Err(EuvdError::RateLimited);
@@ -222,10 +207,7 @@ impl EuvdClient {
             return Err(EuvdError::Api { status, body });
         }
 
-        response
-            .json()
-            .await
-            .map_err(|e| EuvdError::Parse(format!("Failed to parse response: {}", e)))
+        Ok(response)
     }
 }
 

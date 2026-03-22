@@ -274,6 +274,48 @@ async fn test_get_by_cve() {
 }
 
 #[tokio::test]
+async fn test_get_list_not_found() {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/lastvulnerabilities")
+        .with_status(404)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder().base_url(server.url()).build();
+
+    let result = client.latest_vulnerabilities().await;
+    assert!(matches!(
+        result.unwrap_err(),
+        euvd_rs::EuvdError::NotFound(_)
+    ));
+
+    mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn test_cve_euvd_mapping_not_found() {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/dump/cve-euvd-mapping")
+        .with_status(404)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder().base_url(server.url()).build();
+
+    let result = client.cve_euvd_mapping().await;
+    assert!(matches!(
+        result.unwrap_err(),
+        euvd_rs::EuvdError::NotFound(_)
+    ));
+
+    mock.assert_async().await;
+}
+
+#[tokio::test]
 async fn test_rate_limited_error() {
     let mut server = Server::new_async().await;
 
