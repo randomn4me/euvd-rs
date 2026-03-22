@@ -1,5 +1,7 @@
 # euvd-rs
 
+> **Note:** The canonical repository is on [GitHub](https://github.com/randomn4me/euvd-rs). Please file issues and PRs there.
+
 [![CI](https://github.com/randomn4me/euvd-rs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/randomn4me/euvd-rs/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
