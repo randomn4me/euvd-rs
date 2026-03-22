@@ -1,6 +1,6 @@
 use crate::{
     error::{EuvdError, Result},
-    models::{CveEuvdMapping, Vulnerability, VulnerabilityList},
+    models::{CveEuvdMapping, SearchResponse, Vulnerability, VulnerabilityList},
     rate_limiter::RateLimiter,
 };
 use reqwest::Client;
@@ -75,12 +75,12 @@ impl EuvdClient {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn search(&self, params: &SearchParams) -> Result<VulnerabilityList> {
+    pub async fn search(&self, params: &SearchParams) -> Result<SearchResponse> {
         let mut url = format!("{}/search", self.base_url);
         let mut query_parts = Vec::new();
 
         if let Some(text) = &params.text {
-            query_parts.push(format!("text={}", urlencoding::encode(text)));
+            query_parts.push(format!("search={}", urlencoding::encode(text)));
         }
         if let Some(from_score) = params.from_score {
             query_parts.push(format!("fromScore={}", from_score));
@@ -156,7 +156,7 @@ impl EuvdClient {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn get_by_cve(&self, cve_id: &str) -> Result<VulnerabilityList> {
+    pub async fn get_by_cve(&self, cve_id: &str) -> Result<SearchResponse> {
         self.search(&SearchParams {
             text: Some(cve_id.to_string()),
             from_score: None,

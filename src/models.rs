@@ -139,6 +139,15 @@ pub struct AdvisoryRelation {
 /// List of vulnerabilities
 pub type VulnerabilityList = Vec<Vulnerability>;
 
+/// Paginated search response from the EUVD search endpoint
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct SearchResponse {
+    /// Matching vulnerabilities
+    pub items: Vec<Vulnerability>,
+    /// Total number of matching results
+    pub total: u64,
+}
+
 /// A mapping between a CVE ID and an EUVD ID from the bulk dump endpoint
 #[derive(Clone, Debug, PartialEq)]
 pub struct CveEuvdMapping {

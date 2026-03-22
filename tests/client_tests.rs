@@ -12,7 +12,7 @@ async fn test_rate_limit_zero_does_not_panic() {
 #[tokio::test]
 async fn test_client_builder_default() {
     let client = EuvdClient::builder().build();
-    assert_eq!(format!("{:?}", client).contains("EuvdClient"), true);
+    assert!(format!("{:?}", client).contains("EuvdClient"));
 }
 
 #[tokio::test]
@@ -20,13 +20,13 @@ async fn test_client_builder_custom_base_url() {
     let client = EuvdClient::builder()
         .base_url("https://example.com/api")
         .build();
-    assert_eq!(format!("{:?}", client).contains("EuvdClient"), true);
+    assert!(format!("{:?}", client).contains("EuvdClient"));
 }
 
 #[tokio::test]
 async fn test_client_builder_custom_rate_limit() {
     let client = EuvdClient::builder().rate_limit(5).build();
-    assert_eq!(format!("{:?}", client).contains("EuvdClient"), true);
+    assert!(format!("{:?}", client).contains("EuvdClient"));
 }
 
 #[tokio::test]
@@ -194,11 +194,11 @@ async fn test_get_by_id_not_found() {
 #[tokio::test]
 async fn test_search_with_text() {
     let mut server = Server::new_async().await;
-    let fixture = include_str!("fixtures/latest_vulnerabilities.json");
+    let fixture = include_str!("fixtures/search_response.json");
 
     let mock = server
         .mock("GET", "/search")
-        .match_query(Matcher::UrlEncoded("text".into(), "Microsoft".into()))
+        .match_query(Matcher::UrlEncoded("search".into(), "linux".into()))
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(fixture)
@@ -208,13 +208,14 @@ async fn test_search_with_text() {
     let client = EuvdClient::builder().base_url(server.url()).build();
 
     let params = SearchParams {
-        text: Some("Microsoft".to_string()),
+        text: Some("linux".to_string()),
         from_score: None,
         to_score: None,
     };
 
-    let result = client.search(&params).await;
-    assert!(result.is_ok());
+    let result = client.search(&params).await.unwrap();
+    assert_eq!(result.total, 2);
+    assert_eq!(result.items.len(), 2);
 
     mock.assert_async().await;
 }
@@ -222,7 +223,7 @@ async fn test_search_with_text() {
 #[tokio::test]
 async fn test_search_with_score_range() {
     let mut server = Server::new_async().await;
-    let fixture = include_str!("fixtures/critical_vulnerabilities.json");
+    let fixture = include_str!("fixtures/search_response.json");
 
     let mock = server
         .mock("GET", "/search")
@@ -244,8 +245,8 @@ async fn test_search_with_score_range() {
         to_score: Some(10),
     };
 
-    let result = client.search(&params).await;
-    assert!(result.is_ok());
+    let result = client.search(&params).await.unwrap();
+    assert_eq!(result.items.len(), 2);
 
     mock.assert_async().await;
 }
@@ -253,11 +254,11 @@ async fn test_search_with_score_range() {
 #[tokio::test]
 async fn test_get_by_cve() {
     let mut server = Server::new_async().await;
-    let fixture = include_str!("fixtures/latest_vulnerabilities.json");
+    let fixture = include_str!("fixtures/search_response.json");
 
     let mock = server
         .mock("GET", "/search")
-        .match_query(Matcher::UrlEncoded("text".into(), "CVE-2023-6425".into()))
+        .match_query(Matcher::UrlEncoded("search".into(), "CVE-2023-6425".into()))
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(fixture)
@@ -266,8 +267,8 @@ async fn test_get_by_cve() {
 
     let client = EuvdClient::builder().base_url(server.url()).build();
 
-    let result = client.get_by_cve("CVE-2023-6425").await;
-    assert!(result.is_ok());
+    let result = client.get_by_cve("CVE-2023-6425").await.unwrap();
+    assert_eq!(result.items.len(), 2);
 
     mock.assert_async().await;
 }

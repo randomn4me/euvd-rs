@@ -1,0 +1,74 @@
+{
+  "items": [
+    {
+      "id": "EUVD-2019-19884",
+      "enisaUuid": "286c4554-48d9-3fea-9a1f-0c6c5707e293",
+      "description": "Memu Play 6.0.7 contains an insecure file permissions vulnerability that allows low-privilege users to escalate privileges by replacing the MemuService.exe executable. Attackers can rename and overwrite MemuService.exe in the installation directory with a malicious executable, which executes with system-level privileges when the service restarts after a computer reboot.",
+      "datePublished": "Mar 21, 2026, 3:33:24 PM",
+      "dateUpdated": "Mar 21, 2026, 3:33:24 PM",
+      "baseScore": 9.3,
+      "baseScoreVersion": "4.0",
+      "baseScoreVector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+      "references": "https://www.exploit-db.com/exploits/46437\nhttps://www.memuplay.com/\nhttps://www.memuplay.com/download-en.php?file_name=Memu-Setup&from=official_release\nhttps://www.vulncheck.com/advisories/memu-play-privilege-escalation-via-insecure-file-permissions\nhttps://nvd.nist.gov/vuln/detail/CVE-2019-25568\n",
+      "aliases": "CVE-2019-25568\nGHSA-p3g8-9x5j-gq4j\n",
+      "assigner": "VulnCheck",
+      "epss": 0.0,
+      "enisaIdProduct": [
+        {
+          "id": "2f42227f-c8ee-3df9-9b31-ec831d34aff0",
+          "product": {
+            "name": "MEMU PLAY"
+          },
+          "product_version": "6.0.7"
+        },
+        {
+          "id": "8dd37a36-aa9b-3399-8236-4873f28990c9",
+          "product": {
+            "name": "MEMU PLAY"
+          },
+          "product_version": "6.0.7"
+        }
+      ],
+      "enisaIdVendor": [
+        {
+          "id": "259a4293-67c2-308e-94a6-cdb525f6a0db",
+          "vendor": {
+            "name": "Memuplay"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EUVD-2026-13840",
+      "enisaUuid": "2a92e9b8-ee24-38e5-90b2-8b70800a3bc0",
+      "description": "Service information is not encrypted when transmitted as BACnet packets \nover the wire, and can be sniffed, intercepted, and modified by an \nattacker. Valuable information such as the File Start Position and File \nData can be sniffed from network traffic using Wireshark's BACnet \ndissector filter. The proprietary format used by WebCTRL to receive \nupdates from the PLC can also be sniffed and reverse engineered.",
+      "datePublished": "Mar 21, 2026, 12:31:44 AM",
+      "dateUpdated": "Mar 21, 2026, 12:31:44 AM",
+      "baseScore": 9.1,
+      "baseScoreVersion": "3.1",
+      "baseScoreVector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+      "references": "https://www.automatedlogic.com/en/company/security-commitment/\nhttps://www.cisa.gov/news-events/ics-advisories/icsa-26-078-08\nhttps://github.com/cisagov/CSAF/blob/develop/csaf_files/OT/white/2026/icsa-26-078-08.json\nhttps://nvd.nist.gov/vuln/detail/CVE-2026-24060\n",
+      "aliases": "CVE-2026-24060\n",
+      "assigner": "icscert",
+      "epss": 0.02,
+      "enisaIdProduct": [
+        {
+          "id": "6bd26d65-6a04-3c6c-a675-00470cb30a27",
+          "product": {
+            "name": "WebCTRL Premium Server"
+          },
+          "product_version": "0 <v8.5"
+        }
+      ],
+      "enisaIdVendor": [
+        {
+          "id": "30b216e7-1fc2-3e37-b8df-a630f125c73f",
+          "vendor": {
+            "name": "Automated Logic"
+          }
+        }
+      ]
+    }
+  ],
+  "total": 2
+}
