@@ -125,7 +125,10 @@ impl EuvdClient {
         self.handle_response(response).await
     }
 
-    /// Search for vulnerabilities by CVE ID
+    /// Look up a vulnerability by its CVE ID
+    ///
+    /// Uses the same `/enisaid` endpoint as `get_by_id`, which accepts
+    /// both EUVD IDs and CVE IDs for exact lookup.
     ///
     /// # Example
     ///
@@ -134,17 +137,13 @@ impl EuvdClient {
     ///
     /// # async fn example() -> euvd_rs::Result<()> {
     /// let client = EuvdClient::new();
-    /// let results = client.get_by_cve("CVE-2024-50831").await?;
+    /// let vuln = client.get_by_cve("CVE-2024-50831").await?;
+    /// println!("EUVD ID: {}", vuln.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn get_by_cve(&self, cve_id: &str) -> Result<SearchResponse> {
-        self.search(&SearchParams {
-            text: Some(cve_id.to_string()),
-            from_score: None,
-            to_score: None,
-        })
-        .await
+    pub async fn get_by_cve(&self, cve_id: &str) -> Result<Vulnerability> {
+        self.get_by_id(cve_id).await
     }
 
     /// Download the full CVE-to-EUVD ID mapping (CSV dump)

@@ -254,11 +254,11 @@ async fn test_search_with_score_range() {
 #[tokio::test]
 async fn test_get_by_cve() {
     let mut server = Server::new_async().await;
-    let fixture = include_str!("fixtures/search_response.json");
+    let fixture = include_str!("fixtures/vulnerability_by_id.json");
 
     let mock = server
-        .mock("GET", "/search")
-        .match_query(Matcher::UrlEncoded("search".into(), "CVE-2023-6425".into()))
+        .mock("GET", "/enisaid")
+        .match_query(Matcher::UrlEncoded("id".into(), "CVE-2024-50831".into()))
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(fixture)
@@ -267,8 +267,27 @@ async fn test_get_by_cve() {
 
     let client = EuvdClient::builder().base_url(server.url()).build();
 
-    let result = client.get_by_cve("CVE-2023-6425").await.unwrap();
-    assert_eq!(result.items.len(), 2);
+    let result = client.get_by_cve("CVE-2024-50831").await.unwrap();
+    assert_eq!(result.id, "EUVD-2024-45012");
+
+    mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn test_get_by_cve_not_found() {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/enisaid")
+        .match_query(Matcher::UrlEncoded("id".into(), "CVE-9999-99999".into()))
+        .with_status(404)
+        .create_async()
+        .await;
+
+    let client = EuvdClient::builder().base_url(server.url()).build();
+
+    let result = client.get_by_cve("CVE-9999-99999").await;
+    assert!(result.is_err());
 
     mock.assert_async().await;
 }
