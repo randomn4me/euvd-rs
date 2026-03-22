@@ -113,7 +113,10 @@ fn test_vulnerability_has_vendors() {
 fn test_vulnerability_product_name() {
     let json = include_str!("fixtures/latest_vulnerabilities.json");
     let vulns: VulnerabilityList = serde_json::from_str(json).unwrap();
-    assert_eq!(vulns[0].enisa_id_product[0].product.name, "Online Clinic Management System");
+    assert_eq!(
+        vulns[0].enisa_id_product[0].product.name,
+        "Online Clinic Management System"
+    );
 }
 
 #[test]

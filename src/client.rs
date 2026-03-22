@@ -137,9 +137,10 @@ impl EuvdClient {
             return Err(EuvdError::Api { status, body });
         }
 
-        response.json().await.map_err(|e| {
-            EuvdError::Parse(format!("Failed to parse vulnerability: {}", e))
-        })
+        response
+            .json()
+            .await
+            .map_err(|e| EuvdError::Parse(format!("Failed to parse vulnerability: {}", e)))
     }
 
     /// Search for vulnerabilities by CVE ID
@@ -188,9 +189,10 @@ impl EuvdClient {
             return Err(EuvdError::Api { status, body });
         }
 
-        let body = response.text().await.map_err(|e| {
-            EuvdError::Parse(format!("Failed to read CSV body: {}", e))
-        })?;
+        let body = response
+            .text()
+            .await
+            .map_err(|e| EuvdError::Parse(format!("Failed to read CSV body: {}", e)))?;
 
         Ok(parse_csv_mapping(&body))
     }
@@ -220,9 +222,10 @@ impl EuvdClient {
             return Err(EuvdError::Api { status, body });
         }
 
-        response.json().await.map_err(|e| {
-            EuvdError::Parse(format!("Failed to parse response: {}", e))
-        })
+        response
+            .json()
+            .await
+            .map_err(|e| EuvdError::Parse(format!("Failed to parse response: {}", e)))
     }
 }
 
@@ -352,7 +355,8 @@ mod tests {
 
     #[test]
     fn parse_csv_mapping_happy_path() {
-        let csv = "euvd_id,cve_id\nEUVD-2024-45012,CVE-2024-50831\nEUVD-2024-45013,CVE-2024-50832\n";
+        let csv =
+            "euvd_id,cve_id\nEUVD-2024-45012,CVE-2024-50831\nEUVD-2024-45013,CVE-2024-50832\n";
         let result = parse_csv_mapping(csv);
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].euvd_id, "EUVD-2024-45012");

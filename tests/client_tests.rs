@@ -12,10 +12,7 @@ async fn test_rate_limit_zero_does_not_panic() {
 #[tokio::test]
 async fn test_client_builder_default() {
     let client = EuvdClient::builder().build();
-    assert_eq!(
-        format!("{:?}", client).contains("EuvdClient"),
-        true
-    );
+    assert_eq!(format!("{:?}", client).contains("EuvdClient"), true);
 }
 
 #[tokio::test]
@@ -23,19 +20,13 @@ async fn test_client_builder_custom_base_url() {
     let client = EuvdClient::builder()
         .base_url("https://example.com/api")
         .build();
-    assert_eq!(
-        format!("{:?}", client).contains("EuvdClient"),
-        true
-    );
+    assert_eq!(format!("{:?}", client).contains("EuvdClient"), true);
 }
 
 #[tokio::test]
 async fn test_client_builder_custom_rate_limit() {
     let client = EuvdClient::builder().rate_limit(5).build();
-    assert_eq!(
-        format!("{:?}", client).contains("EuvdClient"),
-        true
-    );
+    assert_eq!(format!("{:?}", client).contains("EuvdClient"), true);
 }
 
 #[tokio::test]
@@ -51,9 +42,7 @@ async fn test_latest_vulnerabilities() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.latest_vulnerabilities().await;
     assert!(result.is_ok());
@@ -74,9 +63,7 @@ async fn test_latest_vulnerabilities_count() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.latest_vulnerabilities().await.unwrap();
     assert_eq!(result.len(), 2);
@@ -95,9 +82,7 @@ async fn test_exploited_vulnerabilities() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.exploited_vulnerabilities().await;
     assert!(result.is_ok());
@@ -118,9 +103,7 @@ async fn test_exploited_vulnerabilities_contains_exploited_since() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.exploited_vulnerabilities().await.unwrap();
     assert!(result[0].exploited_since.is_some());
@@ -139,9 +122,7 @@ async fn test_critical_vulnerabilities() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.critical_vulnerabilities().await;
     assert!(result.is_ok());
@@ -163,9 +144,7 @@ async fn test_get_by_id() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.get_by_id("EUVD-2024-45012").await;
     assert!(result.is_ok());
@@ -187,9 +166,7 @@ async fn test_get_by_id_returns_correct_id() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.get_by_id("EUVD-2024-45012").await.unwrap();
     assert_eq!(result.id, "EUVD-2024-45012");
@@ -206,9 +183,7 @@ async fn test_get_by_id_not_found() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.get_by_id("EUVD-INVALID").await;
     assert!(result.is_err());
@@ -230,9 +205,7 @@ async fn test_search_with_text() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let params = SearchParams {
         text: Some("Microsoft".to_string()),
@@ -263,9 +236,7 @@ async fn test_search_with_score_range() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let params = SearchParams {
         text: None,
@@ -293,9 +264,7 @@ async fn test_get_by_cve() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.get_by_cve("CVE-2023-6425").await;
     assert!(result.is_ok());
@@ -313,9 +282,7 @@ async fn test_rate_limited_error() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.latest_vulnerabilities().await;
     assert!(result.is_err());
@@ -334,9 +301,7 @@ async fn test_api_error_500() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.latest_vulnerabilities().await;
     assert!(result.is_err());
@@ -356,9 +321,7 @@ async fn test_malformed_json_error() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.latest_vulnerabilities().await;
     assert!(result.is_err());
@@ -379,9 +342,7 @@ async fn test_cve_euvd_mapping() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let mappings = client.cve_euvd_mapping().await.unwrap();
 
@@ -406,9 +367,7 @@ async fn test_cve_euvd_mapping_empty() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let mappings = client.cve_euvd_mapping().await.unwrap();
     assert!(mappings.is_empty());
@@ -430,9 +389,7 @@ async fn test_cve_euvd_mapping_malformed_row() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let mappings = client.cve_euvd_mapping().await.unwrap();
     assert_eq!(mappings.len(), 2);
@@ -452,13 +409,14 @@ async fn test_cve_euvd_mapping_rate_limited() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.cve_euvd_mapping().await;
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), euvd_rs::EuvdError::RateLimited));
+    assert!(matches!(
+        result.unwrap_err(),
+        euvd_rs::EuvdError::RateLimited
+    ));
 
     mock.assert_async().await;
 }
@@ -474,9 +432,7 @@ async fn test_cve_euvd_mapping_server_error() {
         .create_async()
         .await;
 
-    let client = EuvdClient::builder()
-        .base_url(server.url())
-        .build();
+    let client = EuvdClient::builder().base_url(server.url()).build();
 
     let result = client.cve_euvd_mapping().await;
     assert!(result.is_err());

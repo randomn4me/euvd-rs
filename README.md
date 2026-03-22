@@ -1,5 +1,8 @@
 # euvd-rs
 
+[![CI](https://github.com/randomn4me/euvd-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/randomn4me/euvd-rs/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Rust client library for ENISA's European Union Vulnerability Database (EUVD).
 
 ## Features
