@@ -25,7 +25,10 @@ async fn main() -> euvd_rs::Result<()> {
             let vulns = client.exploited_vulnerabilities().await?;
             println!("Exploited vulnerabilities ({} results):\n", vulns.len());
             for v in &vulns {
-                let since = v.exploited_since.as_deref().unwrap_or("unknown");
+                let since = v
+                    .exploited_since
+                    .map(|d| d.to_string())
+                    .unwrap_or_else(|| "unknown".to_string());
                 println!(
                     "  {} (since {}) - {}",
                     v.id,
@@ -82,8 +85,8 @@ async fn main() -> euvd_rs::Result<()> {
             println!("  Updated:     {}", v.date_updated);
             println!("  Assigner:    {}", v.assigner);
             println!("  EPSS:        {:.4}", v.epss);
-            if let Some(aliases) = &v.aliases {
-                println!("  Aliases:     {}", aliases.trim().replace('\n', ", "));
+            if !v.aliases.is_empty() {
+                println!("  Aliases:     {}", v.aliases.join(", "));
             }
             println!("  Description: {}", v.description);
             if !v.enisa_id_advisory.is_empty() {

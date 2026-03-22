@@ -1,4 +1,45 @@
-use serde::{Deserialize, Serialize};
+use chrono::NaiveDateTime;
+use serde::{Deserialize, Deserializer, Serialize};
+
+const EUVD_DATE_FORMAT: &str = "%b %d, %Y, %I:%M:%S %p";
+
+fn deserialize_euvd_date<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    NaiveDateTime::parse_from_str(&s, EUVD_DATE_FORMAT).map_err(serde::de::Error::custom)
+}
+
+fn deserialize_optional_euvd_date<'de, D>(
+    deserializer: D,
+) -> Result<Option<NaiveDateTime>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: Option<String> = Option::deserialize(deserializer)?;
+    match s {
+        Some(s) if !s.is_empty() => NaiveDateTime::parse_from_str(&s, EUVD_DATE_FORMAT)
+            .map(Some)
+            .map_err(serde::de::Error::custom),
+        _ => Ok(None),
+    }
+}
+
+fn deserialize_newline_list<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: Option<String> = Option::deserialize(deserializer)?;
+    Ok(s.map(|s| {
+        s.split('\n')
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(String::from)
+            .collect()
+    })
+    .unwrap_or_default())
+}
 
 /// A vulnerability record from the EUVD database
 ///
@@ -14,9 +55,11 @@ pub struct Vulnerability {
     /// Detailed description of the vulnerability
     pub description: String,
     /// Date when the vulnerability was first published
-    pub date_published: String,
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub date_published: NaiveDateTime,
     /// Date of the last update
-    pub date_updated: String,
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub date_updated: NaiveDateTime,
     /// CVSS base score (0.0-10.0, or -1.0 if not available)
     #[serde(default)]
     pub base_score: f64,
@@ -27,18 +70,18 @@ pub struct Vulnerability {
     #[serde(default)]
     pub base_score_vector: Option<String>,
     /// URLs to references and advisories
-    #[serde(default)]
-    pub references: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_newline_list")]
+    pub references: Vec<String>,
     /// CVE IDs and other aliases
-    #[serde(default)]
-    pub aliases: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_newline_list")]
+    pub aliases: Vec<String>,
     /// Organization that assigned this vulnerability
     pub assigner: String,
     /// EPSS (Exploit Prediction Scoring System) score
     pub epss: f64,
     /// Date when exploitation was first observed (if exploited)
-    #[serde(default)]
-    pub exploited_since: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_optional_euvd_date")]
+    pub exploited_since: Option<NaiveDateTime>,
     /// Affected products
     pub enisa_id_product: Vec<ProductRelation>,
     /// Related vendors
@@ -105,9 +148,11 @@ pub struct VulnerabilityDetail {
     /// Vulnerability description
     pub description: String,
     /// Publication date
-    pub date_published: String,
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub date_published: NaiveDateTime,
     /// Last update date
-    pub date_updated: String,
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub date_updated: NaiveDateTime,
     /// Publication status (not present on all vulnerability types, e.g. GHSA)
     #[serde(default)]
     pub status: Option<String>,
@@ -120,11 +165,11 @@ pub struct VulnerabilityDetail {
     #[serde(default)]
     pub base_score_vector: Option<String>,
     /// Reference URLs
-    #[serde(default)]
-    pub references: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_newline_list")]
+    pub references: Vec<String>,
     /// CVE IDs and other aliases
-    #[serde(default)]
-    pub aliases: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_newline_list")]
+    pub aliases: Vec<String>,
     /// EUVD identifier
     #[serde(rename = "enisa_id")]
     pub enisa_id: String,
@@ -134,7 +179,8 @@ pub struct VulnerabilityDetail {
     /// EPSS score
     pub epss: f64,
     /// Data processing timestamp
-    pub data_processed: String,
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub data_processed: NaiveDateTime,
     /// Related products
     pub vulnerability_product: Vec<ProductRelation>,
     /// Related vendors
@@ -163,18 +209,20 @@ pub struct Advisory {
     #[serde(default)]
     pub summary: Option<String>,
     /// Publication date
-    pub date_published: String,
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub date_published: NaiveDateTime,
     /// Last update date
-    pub date_updated: String,
+    #[serde(deserialize_with = "deserialize_euvd_date")]
+    pub date_updated: NaiveDateTime,
     /// CVSS base score
     #[serde(default)]
     pub base_score: f64,
-    /// Reference URLs (newline-delimited)
-    #[serde(default)]
-    pub references: Option<String>,
-    /// Related CVE aliases (newline-delimited)
-    #[serde(default)]
-    pub aliases: Option<String>,
+    /// Reference URLs
+    #[serde(default, deserialize_with = "deserialize_newline_list")]
+    pub references: Vec<String>,
+    /// Related CVE aliases
+    #[serde(default, deserialize_with = "deserialize_newline_list")]
+    pub aliases: Vec<String>,
     /// Advisory source
     #[serde(default)]
     pub source: Option<AdvisorySource>,
