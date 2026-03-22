@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -38,7 +36,7 @@ jobs:
       - run: cargo fmt --check
 
   pr-hygiene:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,14 +47,17 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          if ! echo "$PR_BODY" | grep -qPi '(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#\d+'; then
+          if ! printf '%s' "$PR_BODY" | grep -qEi '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+'; then
             echo "::error::PR body must reference an issue (e.g. 'Closes #42')"
             exit 1
           fi
 
       - name: Require rebase on main (no merge commits)
+        env:
+          PR_COMMITS: ${{ github.event.pull_request.commits }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          MERGE_COMMITS=$(git log --merges origin/main..HEAD --oneline)
+          MERGE_COMMITS=$(git log --merges --oneline $PR_HEAD~$PR_COMMITS..$PR_HEAD)
           if [ -n "$MERGE_COMMITS" ]; then
             echo "::error::PR contains merge commits. Please rebase on main and squash your history."
             echo "$MERGE_COMMITS"
@@ -64,9 +65,10 @@ jobs:
           fi
 
       - name: Require squashed history (single commit)
+        env:
+          PR_COMMITS: ${{ github.event.pull_request.commits }}
         run: |
-          COMMIT_COUNT=$(git rev-list --count origin/main..HEAD)
-          if [ "$COMMIT_COUNT" -gt 1 ]; then
-            echo "::error::PR has $COMMIT_COUNT commits. Please squash into a single commit."
+          if [ "$PR_COMMITS" -gt 1 ]; then
+            echo "::error::PR has $PR_COMMITS commits. Please squash into a single commit."
             exit 1
           fi
