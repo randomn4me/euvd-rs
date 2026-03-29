@@ -53,6 +53,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo generate-lockfile
       - uses: rustsec/audit-check@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -75,8 +77,10 @@ jobs:
           fi
 
       - name: Require rebase on main (no merge commits)
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          MERGE_COMMITS=$(git log --merges --oneline origin/main..HEAD)
+          MERGE_COMMITS=$(git log --merges --oneline origin/main..$PR_HEAD)
           if [ -n "$MERGE_COMMITS" ]; then
             echo "::error::PR contains merge commits. Please rebase on main and squash your history."
             echo "$MERGE_COMMITS"
