@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -24,7 +28,7 @@ jobs:
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
-      - run: cargo clippy -- -D warnings
+      - run: cargo clippy --all-targets -- -D warnings
 
   fmt:
     runs-on: ubuntu-latest
@@ -34,6 +38,26 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --check
+
+  doc:
+    runs-on: ubuntu-latest
+    env:
+      RUSTDOCFLAGS: "-D warnings"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo doc --no-deps
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo generate-lockfile
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   pr-hygiene:
     if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
@@ -54,10 +78,9 @@ jobs:
 
       - name: Require rebase on main (no merge commits)
         env:
-          PR_COMMITS: ${{ github.event.pull_request.commits }}
           PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          MERGE_COMMITS=$(git log --merges --oneline $PR_HEAD~$PR_COMMITS..$PR_HEAD)
+          MERGE_COMMITS=$(git log --merges --oneline origin/main..$PR_HEAD)
           if [ -n "$MERGE_COMMITS" ]; then
             echo "::error::PR contains merge commits. Please rebase on main and squash your history."
             echo "$MERGE_COMMITS"
