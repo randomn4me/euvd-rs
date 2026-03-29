@@ -48,9 +48,18 @@ git rebase -i origin/main
 git push --force-with-lease
 ```
 
+## Local Setup
+
+Install the pre-commit hook to mirror CI checks locally:
+
+```bash
+cp scripts/pre-commit .git/hooks/pre-commit
+```
+
+This runs `cargo fmt --check`, `cargo clippy --all-targets`, `cargo test`, and `cargo doc` before each commit.
+
 ## Code Guidelines
 
-- Run `cargo fmt`, `cargo clippy -- -D warnings`, and `cargo test` before submitting.
 - Follow existing code conventions and patterns.
 - Use [conventional commit](https://www.conventionalcommits.org/) style for your commit message.
 - Keep dependencies minimal.
